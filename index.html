@@ -539,7 +539,7 @@
                         // そのWebアプリのURLをここに記述する必要があります。
                         // ★★★★ 以下の 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL' を、ステップ1でコピーしたURLに置き換えてください ★★★★
                         // あなたが現在使用すべきApps ScriptのURLはこれです: https://script.google.com/macros/s/AKfycbxLk8FsUWyq19ztaHRfd44flUcOwlqs5McPEgnh04I/exec
-                        const googleAppsScriptUrl = `https://script.google.com/macros/s/AKfycbxLk8FsUWyq19ztaHRfd44flUcOwlqs5McPEgnh04I/exec?spreadsheetId=${spreadsheetId}`;
+                        const googleAppsScriptUrl = `https://script.google.com/macros/library/d/1V3zfQ_MY0kFlc3lUhVqZ3mnKyvYOIRVpRT4HnGDDGeirWHmd-sYx2WyO/1?spreadsheetId=${spreadsheetId}`;
 
                         const response = await fetch(googleAppsScriptUrl);
                         if (!response.ok) {
@@ -576,7 +576,7 @@
                 return;
             }
 
-            if (data.length < 2) { 
+            if (data.length < 2) {
                 document.getElementById('quiz-section').innerHTML =
                     '<div class="error">スプレッドシートにクイズデータが不足しています。</div>';
                 return;
