@@ -42,65 +42,6 @@
             background-clip: text;
         }
 
-        /* ログインセクションは削除されたため、関連スタイルは不要になりますが、念のため残しておきます */
-        .login-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-            display: none; /* 常に非表示 */
-        }
-
-        .login-section h2 {
-            color: #495057;
-            margin-bottom: 15px;
-        }
-
-        .login-info {
-            color: #6c757d;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        .google-login-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .google-login-btn:hover {
-            background: #3367d6;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(66, 133, 244, 0.3);
-        }
-
-        .user-info {
-            display: none; /* 常に非表示 */
-            align-items: center;
-            justify-content: space-between;
-            background: #e8f5e8;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
         .setup-section {
             background: #f8f9fa;
             padding: 20px;
@@ -162,14 +103,12 @@
             transform: none;
         }
 
-        .btn-logout {
-            background: #6c757d;
-            padding: 8px 20px;
-            font-size: 14px;
+        .btn-quit {
+            background: #dc3545; /* 赤系の色に */
         }
-
-        .btn-logout:hover {
-            background: #5a6268;
+        .btn-quit:hover {
+            background: #c82333;
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
         }
 
         .category-selection {
@@ -217,6 +156,10 @@
             padding: 30px;
             margin-bottom: 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            min-height: 250px; /* ★ここを調整 */
+            display: flex; /* ★追加 */
+            flex-direction: column; /* ★追加 */
+            justify-content: space-between; /* ★追加 */
         }
 
         .question-text {
@@ -276,10 +219,14 @@
             border-color: transparent;
         }
 
+        /* ★結果表示エリアのスタイル調整 */
+        #quiz-result-display-area {
+            margin-top: 20px; /* ボタンと結果の間にスペースを確保 */
+        }
+
         .result {
             padding: 20px;
             border-radius: 15px;
-            margin-top: 20px;
             font-weight: 600;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -291,7 +238,7 @@
         }
 
         .result.incorrect {
-            background: linear-gradient(45deg, #dc3545, #e83e8c);
+            background: linear-gradient(45deg, #dc3545, #e83e8c); /* グラデーションの修正 */
             color: white;
         }
 
@@ -471,12 +418,10 @@
                 </div>
             </div>
 
-            <div id="question-container"></div>
-
-            <div style="text-align: center; margin-top: 20px;">
+            <div id="question-container"></div> <div style="text-align: center; margin-top: 20px;">
                 <button class="btn" onclick="nextQuestion()" id="next-btn" style="display: none;">次の問題</button>
                 <button class="btn" onclick="showResults()" id="finish-btn" style="display: none;">結果を見る</button>
-            </div>
+                <button class="btn btn-quit" onclick="quitQuiz()">途中でやめる</button> </div>
         </div>
 
         <div id="results-section" style="display: none;">
@@ -510,10 +455,7 @@
         let unknownCount = 0;
         let selectedCategories = new Set();
         let userAnswers = [];
-        // let currentUser = null; // Googleログイン機能削除のため、この変数は不要
         let selectedAnswer = null;
-
-        // Google Sign-In の初期化関連の関数はすべて削除
 
         function extractSpreadsheetId(url) {
             const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
@@ -521,50 +463,38 @@
         }
 
         async function loadSpreadsheet() {
-                    const url = document.getElementById('spreadsheet-url').value;
-                    if (!url) {
-                        alert('スプレッドシートのURLを入力してください。');
-                        return;
-                    }
+            const url = document.getElementById('spreadsheet-url').value;
+            if (!url) {
+                alert('スプレッドシートのURLを入力してください。');
+                return;
+            }
 
-                    const spreadsheetId = extractSpreadsheetId(url);
-                    if (!spreadsheetId) {
-                        alert('正しいスプレッドシートのURLを入力してください。');
-                        return;
-                    }
+            const spreadsheetId = extractSpreadsheetId(url);
+            if (!spreadsheetId) {
+                alert('正しいスプレッドシートのURLを入力してください。');
+                return;
+            }
 
-                    try {
-                        // 【ここがあなたが変更を加える主要な部分です】
-                        // 実際のスプレッドシートデータを読み込むためには、Google Apps Script を使ってデータをJSON形式で返すWebアプリを作成し、
-                        // そのWebアプリのURLをここに記述する必要があります。
-                        // ★★★★ 以下の 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL' を、ステップ1でコピーしたURLに置き換えてください ★★★★
-                        // あなたが現在使用すべきApps ScriptのURLはこれです: https://script.google.com/macros/s/AKfycbxLk8FsUWyq19ztaHRfd44flUcOwlqs5McPEgnh04I/exec
-                        const googleAppsScriptUrl = `https://script.google.com/macros/s/AKfycbyhuNAAdAkwpmvLPE84VSXJ5neRcNHs9lymU5BRBfxo-MiL9058ePagnZvdsq5fJuA4/exec?spreadsheetId=${spreadsheetId}`;
+            try {
+                // Google Apps ScriptのウェブアプリのURLをここに設定！
+                // ★★★ ここをあなたのGoogle Apps ScriptのデプロイURLに置き換えてください ★★★
+                // 例: const googleAppsScriptUrl = `https://script.google.com/macros/s/AKfycbyhuNAAdAkwpmvLPE84VSXJ5neRcNHs9lymU5BRBfxo-MiL9058ePagnZvdsq5fJuA4/exec?spreadsheetId=${spreadsheetId}`;
+                const googleAppsScriptUrl = `https://script.google.com/macros/s/AKfycbyhuNAAdAkwpmvLPE84VSXJ5neRcNHs9lymU5BRBfxo-MiL9058ePagnZvdsq5fJuA4/exec?spreadsheetId=${spreadsheetId}`; // この行を正しいURLに修正！
 
-                        const response = await fetch(googleAppsScriptUrl);
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        const data = await response.json();
-                        parseSpreadsheetData(data);
 
-                        // --- 以前のデモ用サンプルデータ（コメントアウトまたは削除してください） ---
-                        /*
-                        const sampleData = [
-                            ['カテゴリ', '問題', '○ or ×', '解説'],
-                            ['計画', '1月は英語でJanuary', '○', 'January'],
-                            ['環境・設備', '2月は英語でたんぽぽ', '×', 'February'],
-                            // ... 続きのサンプルデータ ...
-                        ];
-                        parseSpreadsheetData(sampleData);
-                        */
-
-                    } catch (error) {
-                        console.error('データの読み込みに失敗しました:', error);
-                        document.getElementById('quiz-section').innerHTML =
-                            '<div class="error">データの読み込みに失敗しました。スプレッドシートが公開されているか、URLが正しいか確認してください。</div>';
-                    }
+                const response = await fetch(googleAppsScriptUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                const data = await response.json();
+                parseSpreadsheetData(data);
+
+            } catch (error) {
+                console.error('データの読み込みに失敗しました:', error);
+                document.getElementById('quiz-section').innerHTML =
+                    '<div class="error">データの読み込みに失敗しました。スプレッドシートが公開されているか、URLが正しいか、Apps ScriptのURLとデプロイ設定を確認してください。</div>';
+            }
+        }
 
         function parseSpreadsheetData(data) {
             quizData = [];
@@ -584,12 +514,13 @@
 
             for (let i = 1; i < data.length; i++) {
                 const row = data[i];
-                if (row.length >= 4) {
+                if (row.length >= 4) { // カテゴリ、問題、解答、解説の4列を期待
                     const category = row[0];
                     const question = row[1];
-                    const answer = row[2];
+                    const answer = String(row[2]).trim(); // 回答を文字列として取得しトリム
                     const explanation = row[3];
 
+                    // 全ての必須項目が存在するか確認
                     if (category && question && answer && explanation) {
                         quizData.push({
                             category: category,
@@ -600,9 +531,11 @@
                         categories.add(category);
                     } else {
                         // 行は必要なデータが不足しているためスキップされました
+                        console.warn(`Warning: Skipping row ${i+1} due to missing data. Row:`, row);
                     }
                 } else {
                     // 行は列数が不足しているためスキップされました
+                    console.warn(`Warning: Skipping row ${i+1} due to insufficient columns. Row:`, row);
                 }
             }
 
@@ -610,6 +543,10 @@
             if (quizData.length === 0) {
                  document.getElementById('quiz-section').innerHTML =
                     '<div class="error">スプレッドシートから有効なクイズデータが抽出されませんでした。<br>スプレッドシートの1行目にヘッダー、2行目以降に「カテゴリ」「問題」「○ or ×」「解説」が全て入力されているか確認してください。</div>';
+            } else {
+                // データが読み込めたらセットアップセクションを非表示にし、カテゴリ選択を表示
+                document.getElementById('setup-section').style.display = 'none';
+                document.getElementById('category-section').style.display = 'block';
             }
         }
 
@@ -625,7 +562,7 @@
                 categoriesContainer.appendChild(categoryBtn);
             });
 
-            document.getElementById('category-section').style.display = 'block';
+            // category-sectionの表示はparseSpreadsheetDataの最後で一括で行う
         }
 
         function toggleCategory(category, btnElement) {
@@ -674,6 +611,7 @@
             const question = currentQuestions[currentQuestionIndex];
             const container = document.getElementById('question-container');
 
+            // ★変更: 結果表示エリアのdivを追加
             container.innerHTML = `
                 <div class="question-card">
                     <div class="question-text">${question.question}</div>
@@ -682,13 +620,19 @@
                         <button class="answer-btn" onclick="selectAnswer('×', this)">× 間違い</button>
                         <button class="answer-btn" onclick="selectAnswer('?', this)">? わからない</button>
                     </div>
-                </div>
+                    <div id="quiz-result-display-area"></div> </div>
             `;
 
             document.getElementById('current-question').textContent = currentQuestionIndex + 1;
             document.getElementById('next-btn').style.display = 'none';
             document.getElementById('finish-btn').style.display = 'none';
-            selectedAnswer = null;
+            selectedAnswer = null; // 回答選択をリセット
+            // ボタンを再度有効化
+            const allButtons = document.querySelectorAll('.answer-btn');
+            allButtons.forEach(btn => {
+                btn.style.pointerEvents = 'auto';
+                btn.classList.remove('correct', 'incorrect', 'unknown', 'selected'); // スタイルもリセット
+            });
         }
 
         function selectAnswer(answer, buttonElement) {
@@ -718,12 +662,13 @@
             } else {
                 // 不正解
                 incorrectCount++;
+                isCorrect = false; // 明示的に不正解を設定
                 resultClass = 'incorrect';
                 buttonElement.classList.add('incorrect');
 
                 // 正解のボタンも表示
                 allButtons.forEach(btn => {
-                    if (btn.textContent.includes(question.answer)) {
+                    if (btn.textContent.includes(question.answer)) { // 「○ 正しい」「× 間違い」に対応
                         btn.classList.add('correct');
                     }
                 });
@@ -754,7 +699,8 @@
         }
 
         function showResult(userAnswer, explanation, resultClass) {
-            const container = document.getElementById('question-container');
+            // ★変更: quiz-result-display-areaに結果を挿入
+            const resultArea = document.getElementById('quiz-result-display-area');
             const resultDiv = document.createElement('div');
             resultDiv.className = `result ${resultClass}`;
 
@@ -771,7 +717,8 @@
                 <strong>${resultText}</strong><br>
                 解説: ${explanation}
             `;
-            container.appendChild(resultDiv);
+            resultArea.innerHTML = ''; // 以前の結果をクリア
+            resultArea.appendChild(resultDiv);
         }
 
         function updateScoreCounts() {
@@ -787,7 +734,7 @@
 
         function showResults() {
             const total = currentQuestions.length;
-            const percentage = Math.round((correctCount / total) * 100);
+            const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0;
 
             document.getElementById('quiz-section').style.display = 'none';
             document.getElementById('results-section').style.display = 'block';
@@ -809,7 +756,6 @@
 
             generateReviewContent();
 
-            // データ保存 (ログイン状態に関わらず保存を試みます)
             saveUserData();
         }
 
@@ -818,6 +764,11 @@
             const incorrectReview = document.getElementById('review-incorrect');
             const unknownReview = document.getElementById('review-unknown');
 
+            // 全てのレビューコンテンツをクリア
+            allReview.innerHTML = '';
+            incorrectReview.innerHTML = '';
+            unknownReview.innerHTML = '';
+
             // 全問題
             let allHTML = '';
             userAnswers.forEach((answer, index) => {
@@ -825,7 +776,7 @@
                 const statusText = answer.isUnknown ? 'わからない' : (answer.isCorrect ? '正解' : '不正解');
 
                 allHTML += `
-                    <div class="review-item">
+                    <div class="review-item ${statusClass}">
                         <strong>問題 ${index + 1} [${answer.category}] - ${statusText}</strong><br>
                         <strong>問題:</strong> ${answer.question}<br>
                         <strong>あなたの回答:</strong> ${answer.userAnswer} |
@@ -834,14 +785,14 @@
                     </div>
                 `;
             });
-            allReview.innerHTML = allHTML;
+            allReview.innerHTML = allHTML || '<p>回答された問題はありません。</p>';
 
             // 間違った問題
             const incorrectAnswers = userAnswers.filter(a => !a.isCorrect && !a.isUnknown);
-            let incorrectHTML = incorrectAnswers.length > 0 ? '' : '<p>間違った問題はありません！</p>';
+            let incorrectHTML = '';
             incorrectAnswers.forEach((answer, index) => {
                 incorrectHTML += `
-                    <div class="review-item">
+                    <div class="review-item incorrect">
                         <strong>問題 ${index + 1} [${answer.category}]</strong><br>
                         <strong>問題:</strong> ${answer.question}<br>
                         <strong>あなたの回答:</strong> ${answer.userAnswer} |
@@ -850,14 +801,14 @@
                     </div>
                 `;
             });
-            incorrectReview.innerHTML = incorrectHTML;
+            incorrectReview.innerHTML = incorrectHTML || '<p>間違った問題はありません！</p>';
 
             // わからない問題
             const unknownAnswers = userAnswers.filter(a => a.isUnknown);
-            let unknownHTML = unknownAnswers.length > 0 ? '' : '<p>わからない問題はありません！</p>';
+            let unknownHTML = '';
             unknownAnswers.forEach((answer, index) => {
                 unknownHTML += `
-                    <div class="review-item">
+                    <div class="review-item unknown">
                         <strong>問題 ${index + 1} [${answer.category}]</strong><br>
                         <strong>問題:</strong> ${answer.question}<br>
                         <strong>正解:</strong> ${answer.correctAnswer}<br>
@@ -865,7 +816,11 @@
                     </div>
                 `;
             });
-            unknownReview.innerHTML = unknownHTML;
+            unknownReview.innerHTML = unknownHTML || '<p>わからない問題はありません！</p>';
+
+            // デフォルトで「全問題」タブをアクティブにする
+            showReviewTab('all');
+            document.querySelector('.review-tab[onclick="showReviewTab(\'all\')"]').classList.add('active');
         }
 
         function showReviewTab(tab) {
@@ -873,15 +828,14 @@
             document.querySelectorAll('.review-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.review-content').forEach(c => c.classList.remove('active'));
 
-            event.target.classList.add('active');
+            // クリックされたタブをアクティブにする
+            event.target.classList.add('active'); // event.targetはクリックされた要素自身
             document.getElementById(`review-${tab}`).classList.add('active');
         }
 
         function saveUserData() {
-            // Googleログイン機能削除のため、currentUserによる条件分岐は不要になりました。
-            // データは常に匿名ユーザーとして保存されます。
             const userData = {
-                userId: 'anonymous_user', // 固定の匿名ユーザーID
+                userId: 'anonymous_user',
                 timestamp: new Date().toISOString(),
                 categories: Array.from(selectedCategories),
                 totalQuestions: currentQuestions.length,
@@ -892,7 +846,6 @@
                 answers: userAnswers
             };
 
-            // ここではローカルストレージにデモ保存（実際の運用ではサーバサイドのデータベースを推奨）
             try {
                 const existingData = JSON.parse(localStorage.getItem('quizData') || '[]');
                 existingData.push(userData);
@@ -923,51 +876,52 @@
                 btn.classList.remove('selected');
             });
             document.getElementById('start-quiz-btn').disabled = true;
+
+            // スコア表示もリセット
+            correctCount = 0;
+            incorrectCount = 0;
+            unknownCount = 0;
+            updateScoreCounts();
+            userAnswers = []; // ユーザー回答履歴もリセット
+        }
+
+        // 途中でやめるボタンの機能
+        function quitQuiz() {
+            if (confirm('クイズを途中でやめますか？現在の進行状況は失われます。')) {
+                // クイズの状態をリセット
+                quizData = [];
+                currentQuestions = [];
+                currentQuestionIndex = 0;
+                correctCount = 0;
+                incorrectCount = 0;
+                unknownCount = 0;
+                userAnswers = [];
+                selectedCategories.clear();
+                selectedAnswer = null;
+
+                // UIの状態を初期化
+                document.getElementById('quiz-section').style.display = 'none';
+                document.getElementById('results-section').style.display = 'none';
+                document.getElementById('category-section').style.display = 'none';
+                document.getElementById('setup-section').style.display = 'block'; // Setup sectionに戻す
+
+                // スプレッドシートURL入力欄をクリアし、カテゴリボタンをリセット
+                document.getElementById('spreadsheet-url').value = '';
+                document.getElementById('categories').innerHTML = '';
+                document.getElementById('start-quiz-btn').disabled = true;
+                document.getElementById('data-save-status').style.display = 'none'; // 保存メッセージを非表示に
+            }
         }
 
         // ページ読み込み時の初期化
         document.addEventListener('DOMContentLoaded', function() {
-            // initGoogleSignIn(); // Googleログイン機能削除のため、この呼び出しは削除
-
-            // デモ用: 保存されたデータがあるかチェック
-            try {
-                const savedData = localStorage.getItem('quizData');
-                if (savedData) {
-                    const data = JSON.parse(savedData);
-                }
-            } catch (error) {
-            }
+            // 初期状態ではセットアップセクションを表示
+            document.getElementById('setup-section').style.display = 'block';
+            document.getElementById('category-section').style.display = 'none';
+            document.getElementById('quiz-section').style.display = 'none';
+            document.getElementById('results-section').style.display = 'none';
         });
 
-        // 実際のプロジェクトで使用する関数例 (Googleログイン機能削除後は不要であれば削除可)
-        function saveToGoogleSheets(userData) {
-            // Google Apps Script Web Appエンドポイント
-            const scriptUrl = 'YOUR_GOOGLE_APPS_SCRIPT_URL'; // ★ここにあなたのGoogle Apps ScriptのURLを設定してください
-
-            fetch(scriptUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData)
-            })
-            .then(response => response.json())
-            .then(data => {
-            })
-            .catch(error => {
-            });
-        }
-
-        function saveToFirestore(userData) {
-            // Firebase Firestore への保存例 (Firebase SDKのインポートと設定が必要)
-            // 実際の実装では firebase/firestore をインポートして使用
-            /*
-            import { collection, addDoc } from 'firebase/firestore';
-
-            const docRef = await addDoc(collection(db, 'quizResults'), userData);
-            console.log('Document written with ID: ', docRef.id);
-            */
-        }
     </script>
 </body>
 </html>
