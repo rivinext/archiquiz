@@ -538,7 +538,8 @@
                         // 実際のスプレッドシートデータを読み込むためには、Google Apps Script を使ってデータをJSON形式で返すWebアプリを作成し、
                         // そのWebアプリのURLをここに記述する必要があります。
                         // ★★★★ 以下の 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL' を、ステップ1でコピーしたURLに置き換えてください ★★★★
-                        const googleAppsScriptUrl = `https://script.google.com/macros/s/AKfycbxKyybgwJTIJam7o3ugGpRbZTGuxV8h82Z5EAK-Yc7hAXbU_LpfJBc2-nsKMSc1kz8t/exec?spreadsheetId=${spreadsheetId}`;
+                        // あなたが現在使用すべきApps ScriptのURLはこれです: https://script.google.com/macros/s/AKfycbxLk8FsUWyq19ztaHRfd44flUcOwlqs5McPEgnh04I/exec
+                        const googleAppsScriptUrl = `https://script.google.com/macros/s/AKfycbxLk8FsUWyq19ztaHRfd44flUcOwlqs5McPEgnh04I/exec?spreadsheetId=${spreadsheetId}`;
 
                         const response = await fetch(googleAppsScriptUrl);
                         if (!response.ok) {
@@ -566,64 +567,51 @@
                 }
 
         function parseSpreadsheetData(data) {
-                            console.log('--- parseSpreadsheetData が呼び出されました ---');
-                            console.log('Apps Scriptから受け取った生データ:', data); // ★追加
+            quizData = [];
+            const categories = new Set();
 
-                            quizData = [];
-                            const categories = new Set();
+            if (!data || data.length === 0) {
+                document.getElementById('quiz-section').innerHTML =
+                    '<div class="error">スプレッドシートから有効なデータが読み込めませんでした。</div>';
+                return;
+            }
 
-                            if (!data || data.length === 0) {
-                                console.warn('受け取ったデータが空か無効です。'); // ★追加
-                                document.getElementById('quiz-section').innerHTML =
-                                    '<div class="error">スプレッドシートから有効なデータが読み込めませんでした。</div>';
-                                return; // ★追加
-                            }
+            if (data.length < 2) { 
+                document.getElementById('quiz-section').innerHTML =
+                    '<div class="error">スプレッドシートにクイズデータが不足しています。</div>';
+                return;
+            }
 
-                            // ヘッダー行をスキップする前に、データが十分な行数を持っているか確認
-                            if (data.length < 2) { // ヘッダー行と少なくとも1つのデータ行が必要
-                                console.warn('データが少なすぎます。ヘッダーとデータ行が不足している可能性があります。'); // ★追加
-                                document.getElementById('quiz-section').innerHTML =
-                                    '<div class="error">スプレッドシートにクイズデータが不足しています。</div>';
-                                return; // ★追加
-                            }
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (row.length >= 4) {
+                    const category = row[0];
+                    const question = row[1];
+                    const answer = row[2];
+                    const explanation = row[3];
 
+                    if (category && question && answer && explanation) {
+                        quizData.push({
+                            category: category,
+                            question: question,
+                            answer: answer,
+                            explanation: explanation
+                        });
+                        categories.add(category);
+                    } else {
+                        // 行は必要なデータが不足しているためスキップされました
+                    }
+                } else {
+                    // 行は列数が不足しているためスキップされました
+                }
+            }
 
-                            for (let i = 1; i < data.length; i++) {
-                                const row = data[i];
-                                console.log(`処理中の行 ${i}:`, row); // ★追加
-                                if (row.length >= 4) {
-                                    const category = row[0];
-                                    const question = row[1];
-                                    const answer = row[2];
-                                    const explanation = row[3];
-
-                                    if (category && question && answer && explanation) {
-                                        quizData.push({
-                                            category: category,
-                                            question: question,
-                                            answer: answer,
-                                            explanation: explanation
-                                        });
-                                        categories.add(category);
-                                        console.log(`行 ${i} が有効なクイズデータとして追加されました。`); // ★追加
-                                    } else {
-                                        console.warn(`行 ${i} は必要なデータ（カテゴリ、問題、○or×、解説）が不足しているためスキップされました:`, row); // ★追加
-                                    }
-                                } else {
-                                    console.warn(`行 ${i} は列数が不足しているためスキップされました (最低4列必要):`, row); // ★追加
-                                }
-                            }
-
-                            console.log('最終的なquizDataの数:', quizData.length); // ★追加
-                            console.log('抽出されたカテゴリ:', Array.from(categories)); // ★追加
-
-                            displayCategories(Array.from(categories));
-                            // quizDataが空の場合、カテゴリが表示されないため、その旨を伝えるメッセージを追加
-                            if (quizData.length === 0) { // ★追加
-                                 document.getElementById('quiz-section').innerHTML =
-                                    '<div class="error">スプレッドシートから有効なクイズデータが抽出されませんでした。<br>スプレッドシートの1行目にヘッダー、2行目以降に「カテゴリ」「問題」「○ or ×」「解説」が全て入力されているか確認してください。</div>';
-                            } // ★追加
-                        }
+            displayCategories(Array.from(categories));
+            if (quizData.length === 0) {
+                 document.getElementById('quiz-section').innerHTML =
+                    '<div class="error">スプレッドシートから有効なクイズデータが抽出されませんでした。<br>スプレッドシートの1行目にヘッダー、2行目以降に「カテゴリ」「問題」「○ or ×」「解説」が全て入力されているか確認してください。</div>';
+            }
+        }
 
         function displayCategories(categories) {
             const categoriesContainer = document.getElementById('categories');
@@ -940,17 +928,14 @@
         // ページ読み込み時の初期化
         document.addEventListener('DOMContentLoaded', function() {
             // initGoogleSignIn(); // Googleログイン機能削除のため、この呼び出しは削除
-            console.log('クイズサイトが読み込まれました！');
 
             // デモ用: 保存されたデータがあるかチェック
             try {
                 const savedData = localStorage.getItem('quizData');
                 if (savedData) {
                     const data = JSON.parse(savedData);
-                    console.log('保存されたデータ:', data);
                 }
             } catch (error) {
-                console.log('保存データの読み込みエラー:', error);
             }
         });
 
@@ -968,10 +953,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('データがGoogle Sheetsに保存されました:', data);
             })
             .catch(error => {
-                console.error('保存エラー:', error);
             });
         }
 
