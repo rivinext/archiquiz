@@ -538,7 +538,7 @@
                         // 実際のスプレッドシートデータを読み込むためには、Google Apps Script を使ってデータをJSON形式で返すWebアプリを作成し、
                         // そのWebアプリのURLをここに記述する必要があります。
                         // ★★★★ 以下の 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL' を、ステップ1でコピーしたURLに置き換えてください ★★★★
-                        const googleAppsScriptUrl = `https://script.google.com/macros/s/AKfycbyYVRB6XbwApxTiYiZDjeUzwzs7yDj_ykZGBPYIvDkDQb6xa7A4yiZ_c97H6LcSJgQi/exec?spreadsheetId=${spreadsheetId}`;
+                        const googleAppsScriptUrl = `https://script.google.com/macros/s/AKfycbxKyybgwJTIJam7o3ugGpRbZTGuxV8h82Z5EAK-Yc7hAXbU_LpfJBc2-nsKMSc1kz8t/exec?spreadsheetId=${spreadsheetId}`;
 
                         const response = await fetch(googleAppsScriptUrl);
                         if (!response.ok) {
